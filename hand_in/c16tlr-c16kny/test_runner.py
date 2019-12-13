@@ -11,7 +11,7 @@ def simulate():
     for _ in range(0, 20):
         bandit_reward = bandit.simulator.simulate(bandit.bandit, True)
         ref_bandit_reward = bandit.simulator.simulate(bandit.ref_bandit, False)
-        ref_plus_bonus = ref_bandit_reward * 1.3
+        ref_plus_bonus = ref_bandit_reward * 1.2
         result = 0
         if (bandit_reward > ref_plus_bonus):
             result = 1

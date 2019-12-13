@@ -15,21 +15,23 @@ def simulate(bandit, isBandit):
     shuffle(expected_rewards_approx)
     for _ in range(10000):
         for arm_index in range(6):
-            acc_rewards[arm_index] = acc_rewards[arm_index] + generate_reward(arm_index, expected_rewards_approx)
+            acc_rewards[arm_index] += generate_reward(arm_index, expected_rewards_approx)
 
     if isBandit:
-        print("***********************BANDIT*********************************")
+        #print("***********************BANDIT*********************************")
+        pass
     else:
-        print("***********************REFERENCE BANDIT*********************************")
-    print('Reward comparison of the different arms:')
-    print([r / 10000 for r in acc_rewards])
+        #print("***********************REFERENCE BANDIT*********************************")
+        pass
+    #print('Reward comparison of the different arms:')
+    #print([r / 10000 for r in acc_rewards])
 
     for _ in range(1000):
         arm = bandit.run()
         reward = generate_reward(bandit.arms.index(arm), expected_rewards_approx)
         bandit.give_feedback(arm, reward)
-    print('Frequencies')
-    print(bandit.frequencies)
-    print("***************************END************************************")
+    #print('Frequencies')
+    #print(bandit.frequencies)
+    #print("***************************END************************************")
 
     return sum(bandit.sums)
