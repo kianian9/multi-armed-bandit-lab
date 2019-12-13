@@ -1,10 +1,11 @@
 from random import random, shuffle
 from random import gauss
 
+
 def generate_reward(arm_index, expected_rewards_approx):
     return gauss(expected_rewards_approx[arm_index], 0.5) + random() / 2
 
-def simulate(bandit):
+def simulate(bandit, isBandit):
     acc_rewards = [0 for _ in range(6)]
     expected_rewards_approx = [
         1 + (random() / 2) for _ in range(4)
@@ -16,6 +17,10 @@ def simulate(bandit):
         for arm_index in range(6):
             acc_rewards[arm_index] = acc_rewards[arm_index] + generate_reward(arm_index, expected_rewards_approx)
 
+    if isBandit:
+        print("***********************BANDIT*********************************")
+    else:
+        print("***********************REFERENCE BANDIT*********************************")
     print('Reward comparison of the different arms:')
     print([r / 10000 for r in acc_rewards])
 
@@ -25,4 +30,6 @@ def simulate(bandit):
         bandit.give_feedback(arm, reward)
     print('Frequencies')
     print(bandit.frequencies)
+    print("***************************END************************************")
+
     return sum(bandit.sums)
