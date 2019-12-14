@@ -112,6 +112,10 @@ class Bandit:
             if not wasBadTrend:
                 return armIndex
         for index in armIndexList:
+
+
+
+
             if index == armIndex:
                 continue
             else:
@@ -121,6 +125,9 @@ class Bandit:
                         if rewardVal < nrBadRewards:
                             nrBadRewards = rewardVal
                             bestArmIndex = index
+
+
+
         return bestArmIndex
 
 
@@ -204,7 +211,7 @@ class Bandit:
         self.armHistory[arm_index].append(reward)
 
         if len(self.lastArmRewards) >= CHECK_SIZE:
-            wasBadTrend, rewardVal = self.lastRewardsGettingBad(self.lastArmRewards)
+            wasBadTrend, rewardVal = self.lastRewardsGettingBad(self.armHistory[arm_index])
             if wasBadTrend:
                 self.expected_values[arm_index] -= EXPECTED_DECREASE_RATE
                 if 0 < (self.epsilon * EPS_EXPLORE_RATE) < 1:
@@ -215,91 +222,13 @@ class Bandit:
                 if 0 < (self.epsilon * EPS_EXPLOIT_RATE) < 1:
                     self.epsilon *= EPS_EXPLOIT_RATE
 
-        #print(self.epsilon)
+        #if(fsum(self.frequencies) == 999):
+            #self.printArmHistory()
 
-        '''
-        if self.lastArmRewards[len(self.lastArmRewards) - 1] < reward:
-            #print("IF")
-            self.expected_values[arm_index] -= 0.1
-            #print(self.expected_values[arm_index])
-        else:
-            #print("ELSE")
-            self.expected_values[arm_index] += 0.3
-            self.epsilon = self.normalizeValue(self.epsilon - 0.1)
-        '''
-        #print(self.expected_values[arm_index])
-        #print(self.epsilon)
+    def printArmHistory(self):
+        for i in range(6):
+            print("i: " + str(i) + "len: " + str(len(self.armHistory[i])))
 
-
-
-        #if len(self.lastArmRewards) > 50:
-        #    del self.lastArmRewards[50]
-        #    if fsum(self.lastArmRewards) > 0:
-        #        print(fsum(self.lastArmRewards))
-        #    else:
-        #        print(fsum(self.lastArmRewards))
-
-
-
-
-
-
-
-
-        '''
-        arm_index = self.arms.index(arm)
-        sum = self.sums[arm_index] + reward
-        self.sums[arm_index] = sum
-        frequency = self.frequencies[arm_index] + 1
-        self.frequencies[arm_index] = frequency
-        expected_value = sum / frequency
-        self.expected_values[arm_index] = expected_value
-        '''
-
-
-
-    '''
-    def give_feedback(self, arm, reward):
-        arm_index = self.arms.index(arm)
-        sum = self.sums[arm_index] + reward
-        self.sums[arm_index] = sum
-        frequency = self.frequencies[arm_index] + 1
-        self.frequencies[arm_index] = frequency
-        expected_value = sum / frequency
-        self.expected_values[arm_index] = expected_value
-
-        self.maxCounter.append(self.actualArmCounter)
-
-        #give feedback by changing epsilon after each 1000 runs
-        sumFreq = int(fsum(self.frequencies))
-        #print("Actual arm val: " + str(self.actualArmCounter))
-        if self.actualArmCounter != 0 and (self.actualArmCounter % 3) == 0:
-            #print("arms change")
-            self.epsilon -= 0.1
-        if (sumFreq % 1000) == 0:
-            #print("MAx val is: " + str(max(self.maxCounter)))
-            maxVal = max(self.maxCounter)
-            newCount = 0
-            for maxx in self.maxCounter:
-                if maxx == maxVal:
-                    newCount += 1
-            #print("Epsilon is: " + str(self.epsilon))
-            #print("Clears vals")
-            #print("got maxval " + str(newCount) + " numbver of times")
-            self.clear()
-
-
-
-        '''
-        #check if one arm has been pulled 50 times in a row
-
-    '''
-    sumFreq = int(fsum(self.frequencies))
-    if (sumFreq % 50) == 0:
-        self.epsilon -= 0.05
-    if (sumFreq % 1000) == 0:
-        self.clear()
-    '''
 
     def normalizeValue(self, value):
         #normVal = tanh(value)
