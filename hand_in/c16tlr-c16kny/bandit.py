@@ -11,13 +11,13 @@ import simulator
 import reference_bandit
 
 # generic epsilon-greedy bandit
-DEFAULT_EPS = 0.9999
+DEFAULT_EPS = 0.5
 EPS_EXPLOIT_RATE = 0.9995
 EPS_EXPLORE_RATE = 1.001
 BAD_REWARD_RATE = 0.8
-CHECK_SIZE = 10
-EXPECTED_DECREASE_RATE = 0.75
-EXPECTED_INCREASE_RATE = 0.75
+CHECK_SIZE = 5
+EXPECTED_DECREASE_RATE = 1
+EXPECTED_INCREASE_RATE = 1
 #EXPECTED_DECREASE_RATE = 10
 #EXPECTED_INCREASE_RATE = 10
 
@@ -233,8 +233,8 @@ class Bandit:
             if wasBadTrend:
                 #print(2)
                 self.expected_values[arm_index] -= EXPECTED_DECREASE_RATE
-                if 0 < (self.epsilon * EPS_EXPLORE_RATE) < 1:
-                    self.epsilon *= EPS_EXPLORE_RATE
+                #if 0 < (self.epsilon * EPS_EXPLORE_RATE) < 0.5:
+                    #self.epsilon *= EPS_EXPLORE_RATE
 
             else:
                 #print(3)
@@ -250,8 +250,8 @@ class Bandit:
 
 
 
-                if 0 < (self.epsilon * EPS_EXPLOIT_RATE) < 1:
-                    self.epsilon *= EPS_EXPLOIT_RATE
+                #if 0.5 < (self.epsilon * EPS_EXPLOIT_RATE) < 1:
+                    #self.epsilon *= EPS_EXPLOIT_RATE
         #print(self.epsilon)
 
         #if(fsum(self.frequencies) == 999):
