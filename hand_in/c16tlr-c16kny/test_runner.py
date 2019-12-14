@@ -13,8 +13,12 @@ def simulate():
         ref_bandit_reward = bandit.simulator.simulate(bandit.ref_bandit, False)
         ref_plus_bonus = ref_bandit_reward * 1.2
         result = 0
+        print("Bandit reward: " + str(bandit_reward))
+        print("Ref ban reward: " + str(ref_plus_bonus))
         if (bandit_reward > ref_plus_bonus):
             result = 1
+
+
         results.append(result)
     return results
 
