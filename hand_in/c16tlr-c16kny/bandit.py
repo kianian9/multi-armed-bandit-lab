@@ -26,7 +26,6 @@ class Bandit:
         self.armHistory = [[],[],[],[],[],[]]
 
 
-
     def run(self):
         ''' Chooses the bandit arm depending on the AI should explore or exploit '''
         if min(self.frequencies) == 0:
@@ -36,8 +35,6 @@ class Bandit:
             index = self.getBestArm(index)
             return self.arms[index]
         return self.arms[self.expected_values.index(max(self.expected_values))]
-
-
 
     def getBestArm(self, armIndex):
         '''
@@ -66,8 +63,6 @@ class Bandit:
             return random.randint(0, len(arms) - 1)
         return bestArmIndex
 
-
-
     def getAverageReward(self, checkList):
         '''
         Gives the average reward score given the history reward list
@@ -80,8 +75,6 @@ class Bandit:
         for rew in lastRewardsList:
             totalRewardScore += rew
         return totalRewardScore/CHECK_SIZE
-
-
 
     def lastRewardsGettingBad(self, checkList):
         '''
