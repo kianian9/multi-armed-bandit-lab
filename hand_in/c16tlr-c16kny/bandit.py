@@ -300,3 +300,26 @@ arms = [
 bandit = Bandit(arms)
 ref_bandit = reference_bandit.ReferenceBandit(arms)
 
+
+'''
+def longestStreak(list):
+    listLen = len(list)
+    prevIndex = 0
+    currentIndex = 0
+    currentStreak = 0
+    maxStreak = 0
+
+    for i in range(0, listLen -1):
+        currentStreak = 0
+        prevIndex = i
+        for j in range(i+1, listLen):
+            currentIndex= j
+            if list[currentIndex] > list[prevIndex]:
+                currentStreak += 1
+            else:
+                break
+            prevIndex = currentIndex
+        if currentStreak > maxStreak:
+            maxStreak = currentStreak
+    return maxStreak
+'''
