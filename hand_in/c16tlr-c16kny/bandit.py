@@ -1,6 +1,5 @@
 # epsilon-greedy example implementation of a multi-armed bandit
 import random
-from math import fsum, tanh, exp
 
 import os,sys,inspect
 current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
@@ -29,6 +28,7 @@ class Bandit:
 
 
     def run(self):
+        ''' Chooses the bandit arm depending on the AI should explore or exploit '''
         if min(self.frequencies) == 0:
             return self.arms[self.frequencies.index(min(self.frequencies))]
         if random.random() < self.epsilon:
@@ -40,6 +40,10 @@ class Bandit:
 
 
     def getBestArm(self, armIndex):
+        '''
+            Gets the best arm if the generated arm-index didn't correspond to
+            to a reward history list that didn't have any negative trend
+        '''
         armIndexList = [0, 1, 2, 3, 4, 5]
         nrBadRewards = CHECK_SIZE
         bestArmIndex = armIndex
@@ -64,21 +68,29 @@ class Bandit:
 
 
 
-
-    # Ger average reward
     def getAverageReward(self, checkList):
+        '''
+        Gives the average reward score given the history reward list
+        :param checkList: the history reward list
+        :return: the average score
+        '''
         totalRewardScore = 0
         listLen = len(checkList)
-        if listLen >= CHECK_SIZE:
-            lastRewardsList = checkList[listLen - CHECK_SIZE: listLen]
-            for rew in lastRewardsList:
-                totalRewardScore += rew
-            return totalRewardScore/CHECK_SIZE
-        return None
+        lastRewardsList = checkList[listLen - CHECK_SIZE: listLen]
+        for rew in lastRewardsList:
+            totalRewardScore += rew
+        return totalRewardScore/CHECK_SIZE
 
 
 
     def lastRewardsGettingBad(self, checkList):
+        '''
+        Checks whether we have any bad trend in the given history reward list
+        Function returns a boolean which determines if the trend was good
+        or bad together with the trend counter
+        :param checkList: the history reward list
+        :return: False/True, badRewardsCounter/50
+        '''
         listLen = len(checkList)
         badRewardsCounter = 0
         lastRewardsList = checkList[listLen - CHECK_SIZE: listLen]
@@ -97,6 +109,14 @@ class Bandit:
 
 
     def give_feedback(self, arm, reward):
+        '''
+        Sets the new parameters in the datatypes and checks for trends in
+        the given arm's reward history list. The AI also regulates the knowledge
+        of the world by changing the expected values
+        :param arm: the arm the reward was based on
+        :param reward: the given reward given for the used arm
+        :return: None
+        '''
         arm_index = self.arms.index(arm)
         sum = self.sums[arm_index] + reward
         self.sums[arm_index] = sum
