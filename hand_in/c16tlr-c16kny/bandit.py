@@ -12,12 +12,12 @@ import reference_bandit
 
 # generic epsilon-greedy bandit
 DEFAULT_EPS = 0.9999
-EPS_EXPLOIT_RATE = 0.93
-EPS_EXPLORE_RATE = 1.1
-BAD_REWARD_RATE = 0.7
-CHECK_SIZE = 100
+EPS_EXPLOIT_RATE = 0.98
+EPS_EXPLORE_RATE = 1.02
+BAD_REWARD_RATE = 0.8
+CHECK_SIZE = 50
 EXPECTED_DECREASE_RATE = 0.05
-EXPECTED_INCREASE_RATE = 0.2
+EXPECTED_INCREASE_RATE = 0.25
 #EXPECTED_DECREASE_RATE = 10
 #EXPECTED_INCREASE_RATE = 10
 
@@ -31,6 +31,7 @@ class Bandit:
         #self.lastArms = []
         self.lastArmRewards = []
         self.armHistory = [[],[],[],[],[],[]]
+        self.counter = 0
 
 
     '''
@@ -73,6 +74,8 @@ class Bandit:
         if min(self.frequencies) == 0:
             return self.arms[self.frequencies.index(min(self.frequencies))]
         if random.random() < self.epsilon:
+            #print("Counter: " + str(self.counter))
+            #self.counter += 1
             index = random.randint(0, len(arms) - 1)
             index = self.getBestArm(index)
             return self.arms[index]
@@ -102,28 +105,22 @@ class Bandit:
 
     def getBestArm(self, armIndex):
         armIndexList = [0, 1, 2, 3, 4, 5]
-        bestAverageReward = 50
         nrBadRewards = CHECK_SIZE
         bestArmIndex = armIndex
         if len(self.armHistory[armIndex]) >= CHECK_SIZE:
             wasBadTrend, rewardVal = self.lastRewardsGettingBad(self.armHistory[armIndex])
             if not wasBadTrend:
                 return armIndex
-        else:
-            for index in armIndexList:
-                if index is armIndex:
-                    continue
-                else:
-                    wasBadTrend, rewardVal = self.lastRewardsGettingBad(self.armHistory[armIndex])
+        for index in armIndexList:
+            if index == armIndex:
+                continue
+            else:
+                if len(self.armHistory[index]) >= CHECK_SIZE:
+                    wasBadTrend, rewardVal = self.lastRewardsGettingBad(self.armHistory[index])
                     if not wasBadTrend:
-                        #print("true")
                         if rewardVal < nrBadRewards:
                             nrBadRewards = rewardVal
                             bestArmIndex = index
-                    #avgReward = self.getAverageReward(self.armHistory[index])
-                    #if avgReward > bestAverageReward:
-                    #    bestAverageReward = avgReward
-                    #    bestArmIndex = index
         return bestArmIndex
 
 
@@ -172,13 +169,19 @@ class Bandit:
         if (listLen % CHECK_SIZE) == 0:
             lastRewardsList = checkList[listLen - CHECK_SIZE: listLen]
             actualRew = lastRewardsList[0]
-            for i in range(0, len(lastRewardsList)):
+            for i in range(1, len(lastRewardsList)):
+                #print("rewardlist")
+                #print("index=" + str(i) + ", " + str(lastRewardsList[i]) + "\n\n\n")
                 nextReward = lastRewardsList[i]
                 if actualRew > nextReward:
                     badRewardsCounter += 1
                 actualRew = nextReward
-            return badRewardsCounter >= CHECK_SIZE * BAD_REWARD_RATE, badRewardsCounter
-        return False, CHECK_SIZE
+                #print(badRewardsCounter)
+            #print(badRewardsCounter)
+            truthval = (badRewardsCounter >= CHECK_SIZE * BAD_REWARD_RATE)
+            #print("Ska returna " + str(badRewardsCounter) + ", truthvalue=" + str(truthval))
+            return (badRewardsCounter >= CHECK_SIZE * BAD_REWARD_RATE), badRewardsCounter
+        return None, CHECK_SIZE
 
 
 
@@ -199,7 +202,6 @@ class Bandit:
         self.lastArmRewards.append(reward)
 
         self.armHistory[arm_index].append(reward)
-
 
         if len(self.lastArmRewards) >= CHECK_SIZE:
             wasBadTrend, rewardVal = self.lastRewardsGettingBad(self.lastArmRewards)
