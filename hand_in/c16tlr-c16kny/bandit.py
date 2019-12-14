@@ -12,12 +12,12 @@ import reference_bandit
 
 # generic epsilon-greedy bandit
 DEFAULT_EPS = 0.9999
-EPS_EXPLOIT_RATE = 0.98
-EPS_EXPLORE_RATE = 1.02
+EPS_EXPLOIT_RATE = 0.97
+EPS_EXPLORE_RATE = 1.05
 BAD_REWARD_RATE = 0.8
 CHECK_SIZE = 50
-EXPECTED_DECREASE_RATE = 0.05
-EXPECTED_INCREASE_RATE = 0.25
+EXPECTED_DECREASE_RATE = 0.4
+EXPECTED_INCREASE_RATE = 0.1
 #EXPECTED_DECREASE_RATE = 10
 #EXPECTED_INCREASE_RATE = 10
 
@@ -112,14 +112,10 @@ class Bandit:
             if not wasBadTrend:
                 return armIndex
         for index in armIndexList:
-
-
-
-
             if index == armIndex:
                 continue
             else:
-                if len(self.armHistory[index]) >= CHECK_SIZE:
+                if len(self.armHistory[index]) >= CHECK_SIZE :
                     wasBadTrend, rewardVal = self.lastRewardsGettingBad(self.armHistory[index])
                     if not wasBadTrend:
                         if rewardVal < nrBadRewards:
@@ -127,7 +123,8 @@ class Bandit:
                             bestArmIndex = index
 
 
-
+        if bestArmIndex == armIndex:
+            return random.randint(0, len(arms) - 1)
         return bestArmIndex
 
 
@@ -173,22 +170,24 @@ class Bandit:
     def lastRewardsGettingBad(self, checkList):
         listLen = len(checkList)
         badRewardsCounter = 0
-        if (listLen % CHECK_SIZE) == 0:
-            lastRewardsList = checkList[listLen - CHECK_SIZE: listLen]
-            actualRew = lastRewardsList[0]
-            for i in range(1, len(lastRewardsList)):
-                #print("rewardlist")
-                #print("index=" + str(i) + ", " + str(lastRewardsList[i]) + "\n\n\n")
-                nextReward = lastRewardsList[i]
-                if actualRew > nextReward:
-                    badRewardsCounter += 1
-                actualRew = nextReward
-                #print(badRewardsCounter)
+        lastRewardsList = checkList[listLen - CHECK_SIZE: listLen]
+        actualRew = lastRewardsList[0]
+        averageVal = actualRew
+        for i in range(1, len(lastRewardsList)):
+            #print("rewardlist")
+            #print("index=" + str(i) + ", " + str(lastRewardsList[i]) + "\n\n\n")
+            nextReward = lastRewardsList[i]
+            averageVal += nextReward
+            if actualRew > nextReward:
+                badRewardsCounter += 1
+            actualRew = nextReward
             #print(badRewardsCounter)
-            truthval = (badRewardsCounter >= CHECK_SIZE * BAD_REWARD_RATE)
-            #print("Ska returna " + str(badRewardsCounter) + ", truthvalue=" + str(truthval))
-            return (badRewardsCounter >= CHECK_SIZE * BAD_REWARD_RATE), badRewardsCounter
-        return None, CHECK_SIZE
+        #print(badRewardsCounter)
+        truthval = (badRewardsCounter >= CHECK_SIZE * BAD_REWARD_RATE)
+        #print("Ska returna " + str(badRewardsCounter) + ", truthvalue=" + str(truthval))
+        if averageVal < 0:
+            return True, 50
+        return (badRewardsCounter >= CHECK_SIZE * BAD_REWARD_RATE), badRewardsCounter
 
 
 
@@ -206,21 +205,27 @@ class Bandit:
         self.expected_values[arm_index] = expected_value
 
         #self.lastArms.append(arm)
-        self.lastArmRewards.append(reward)
+        #self.lastArmRewards.append(reward)
 
         self.armHistory[arm_index].append(reward)
 
-        if len(self.lastArmRewards) >= CHECK_SIZE:
+        #if len(self.armHistory[arm_index]) >= CHECK_SIZE and (len(self.armHistory[arm_index]) % CHECK_SIZE) == 0:
+        if len(self.armHistory[arm_index]) >= CHECK_SIZE:
             wasBadTrend, rewardVal = self.lastRewardsGettingBad(self.armHistory[arm_index])
+            #print(wasBadTrend)
+            #print(rewardVal)
             if wasBadTrend:
+                #print(2)
                 self.expected_values[arm_index] -= EXPECTED_DECREASE_RATE
                 if 0 < (self.epsilon * EPS_EXPLORE_RATE) < 1:
                     self.epsilon *= EPS_EXPLORE_RATE
 
             else:
+                #print(3)
                 self.expected_values[arm_index] += EXPECTED_INCREASE_RATE
                 if 0 < (self.epsilon * EPS_EXPLOIT_RATE) < 1:
                     self.epsilon *= EPS_EXPLOIT_RATE
+        #print(self.epsilon)
 
         #if(fsum(self.frequencies) == 999):
             #self.printArmHistory()
