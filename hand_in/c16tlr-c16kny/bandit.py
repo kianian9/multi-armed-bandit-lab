@@ -12,8 +12,8 @@ import reference_bandit
 
 # generic epsilon-greedy bandit
 DEFAULT_EPS = 0.9999
-EPS_EXPLOIT_RATE = 0.99
-EPS_EXPLORE_RATE = 1.01
+EPS_EXPLOIT_RATE = 0.96
+EPS_EXPLORE_RATE = 1.08
 BAD_REWARD_RATE = 0.85
 
 
@@ -24,7 +24,7 @@ class Bandit:
         self.frequencies = [0] * len(arms)
         self.sums = [0] * len(arms)
         self.expected_values = [0] * len(arms)
-        self.lastArms = []
+        #self.lastArms = []
         self.lastArmRewards = []
         #self.lastArms =  {'armA':0, 'armB':0, 'armC':0, 'armD':0, 'armE':0}
         #self.lastArm = None
@@ -71,22 +71,24 @@ class Bandit:
 
     def run(self):
         if min(self.frequencies) == 0:
-            self.lastArms.append(self.arms[self.frequencies.index(min(self.frequencies))])
+            #self.lastArms.append(self.arms[self.frequencies.index(min(self.frequencies))])
             return self.arms[self.frequencies.index(min(self.frequencies))]
         if random.random() < self.epsilon:
             index = random.randint(0, len(arms) - 1)
-
+            index = self.getBestArm(index)
+            return self.arms[index]
            # self.lastArms.append(self.arms[)
-            return self.arms[random.randint(0, len(arms) - 1)]
-        self.lastArms.append(self.arms[self.expected_values.index(max(self.expected_values))])
+            #return self.arms[random.randint(0, len(arms) - 1)]
+        #self.lastArms.append(self.arms[self.expected_values.index(max(self.expected_values))])
         return self.arms[self.expected_values.index(max(self.expected_values))]
 
 
+    '''
     def getBestArm(self, armIndex):
         armIndexList = [0, 1, 2, 3, 4, 5]
         armWasGood = self.checkBestArm(self.armHistory[armIndex])
-        lowestBadRewards = None
-        bestArmIndex = None
+        lowestBadRewards = -1
+        bestArmIndex = armIndex
         if armWasGood is not None:
             return armIndex
         else:
@@ -95,12 +97,29 @@ class Bandit:
                     continue
                 else:
                     badRewards = self.checkBestArm(self.armHistory[index])
-                    if lowestBadRewards == None:
-                        lowestBadRewards = badRewards
-                    elif lowestBadRewards < badRewards:
+                    if badRewards is not None and lowestBadRewards < badRewards:
                         lowestBadRewards = badRewards
                         bestArmIndex = index
 
+        return bestArmIndex
+    '''
+
+    def getBestArm(self, armIndex):
+        armIndexList = [0, 1, 2, 3, 4, 5]
+        bestAverageReward = 0
+        bestArmIndex = armIndex
+        if len(self.armHistory[armIndex]) >= 50:
+            if not self.lastRewardsGettingBad(self.armHistory[armIndex]):
+                return armIndex
+        else:
+            for index in armIndexList:
+                if index is armIndex:
+                    continue
+                else:
+                    avgReward = self.getAverageReward(self.armHistory[index])
+                    if avgReward > bestAverageReward:
+                        bestAverageReward = avgReward
+                        bestArmIndex = index
         return bestArmIndex
 
 
@@ -110,33 +129,51 @@ class Bandit:
 
 
 
+    '''
     def checkBestArm(self, checkList):
         badRewardsCounter = 0
         listLen = len(checkList)
-        if (listLen % 50) == 0:
-            lastRewardsList = checkList[listLen - 50: listLen]
-            actualRew = lastRewardsList[0]
-            for i in range(0,len(lastRewardsList)):
-                nextReward = lastRewardsList[i]
-                if actualRew > nextReward:
-                    badRewardsCounter += 1
+        if listLen >= 50:
+            if (listLen % 50) == 0:
+                lastRewardsList = checkList[listLen - 50: listLen]
+                actualRew = lastRewardsList[0]
+                for i in range(0,len(lastRewardsList)):
+                    nextReward = lastRewardsList[i]
+                    if actualRew >= nextReward:
+                        badRewardsCounter += 1
                     actualRew = nextReward
-            if badRewardsCounter < (50 * BAD_REWARD_RATE):
-                return badRewardsCounter
-        else:
+                if badRewardsCounter < (50 * 0.25):
+                    return badRewardsCounter
             return None
+        else:
+            return badRewardsCounter
+    '''
+    # Ger average reward
+    def getAverageReward(self, checkList):
+        totalRewardScore = 0
+        listLen = len(checkList)
+        if listLen >= 50:
+            if (listLen % 50) == 0:
+                lastRewardsList = checkList[listLen - 50: listLen]
+                for rew in lastRewardsList:
+                    totalRewardScore += rew
+                return totalRewardScore/50
+        return None
 
 
 
-    def lastRewardsGettingBad(self, reward, checkList):
+    def lastRewardsGettingBad(self, checkList):
         listLen = len(checkList)
         badRewardsCounter = 0
         if (listLen % 50) == 0:
             lastRewardsList = checkList[listLen - 50: listLen]
-            for rew in lastRewardsList:
-                if rew > reward:
+            actualRew = lastRewardsList[0]
+            for i in range(0, len(lastRewardsList)):
+                nextReward = lastRewardsList[i]
+                if actualRew >= nextReward:
                     badRewardsCounter += 1
-            return badRewardsCounter > 50*BAD_REWARD_RATE
+                actualRew = nextReward
+            return badRewardsCounter > 50 * 0.85
         return False
 
 
@@ -154,21 +191,21 @@ class Bandit:
         expected_value = sum / frequency
         self.expected_values[arm_index] = expected_value
 
-        self.lastArms.append(arm)
+        #self.lastArms.append(arm)
         self.lastArmRewards.append(reward)
 
         self.armHistory[arm_index].append(reward)
 
 
-        if len(self.lastArmRewards) > 50:
-            if self.lastRewardsGettingBad(reward, self.lastArmRewards):
-                self.expected_values[arm_index] -= 0.6
-                if (self.epsilon * EPS_EXPLORE_RATE) < 1:
+        if len(self.lastArmRewards) >= 50:
+            if self.lastRewardsGettingBad(self.lastArmRewards):
+                self.expected_values[arm_index] -= 0.05
+                if 0 < (self.epsilon * EPS_EXPLORE_RATE) < 1:
                     self.epsilon *= EPS_EXPLORE_RATE
 
             else:
-                self.expected_values[arm_index] += 0.2
-                if (self.epsilon * EPS_EXPLOIT_RATE) < 1:
+                self.expected_values[arm_index] += 0.05
+                if 0 < (self.epsilon * EPS_EXPLOIT_RATE) < 1:
                     self.epsilon *= EPS_EXPLOIT_RATE
 
         #print(self.epsilon)
